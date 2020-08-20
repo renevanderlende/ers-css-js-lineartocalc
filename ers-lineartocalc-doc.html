@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+
+<title>LEC - Linear Equation to Calc()</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cutive&family=Cutive+Mono&family=Open+Sans:wght@300;400;600;700&display=swap"> 
+
+<style id="stl-globals-default">
+/**************************/
+/* preferred global rules */
+/**************************/
+html,body           { box-sizing: border-box; margin: 0 }
+body                { min-height: 100vh }
+
+*::before,*::after,
+ *                  { box-sizing: inherit }
+
+img                 { width: 100%; display: block; object-fit: cover }
+
+:focus              { outline: -webkit-focus-ring-color auto 0; outline-width: 0 } /* for Edge 2020 */
+::-moz-focus-inner  { padding: 0; border: 0 } /* Kill Firefox outline */
+</style>
+<!--   id="stl-globals-custom-variables-default" -->
+<style id="stl-gobals-typography-default">
+/***********************************/
+/* Default global typography rules */
+/***********************************/
+
+/* a few preferred personal rules */
+
+/* responsive root font size (320,14)(1280,20) */
+/* demo: full versus substituted equation: same result, different 'calc()'. */
+/*html        { font-size: calc((14 / 16 * 1rem) + (20 - 14) / (1280 - 320) * (100vmin - 320px)) }/**/
+html        { font-size: calc(0.625vmin + 0.75rem) }/**/
+
+body        { font-size: 1rem; line-height: 1.5;
+              font-family: Arial, Helvetica, sans-serif }
+
+h1          { font-size: 2rem } /* override FF+ H1 nesting behaviour */
+
+a           { color: inherit }
+</style>
+
+<style id="stl-flexbox-banding-default">
+/******************/
+/* simple banding */
+/******************/
+[simple-band] { 
+    display: flex; flex-flow: row wrap;
+    justify-content: center; align-content: center;
+}
+/***************************************/
+/* responsive FLEXBOX bands and blocks */
+/***************************************/
+/*
+    For use as easy 'landingpage' content containers
+    [band]  - horizontal content like a strip
+    [block] - vertical content like a list
+
+    - Can both be used interchangeably and nested
+      (band of blocks, block of bands, band of blocks holding bands…)
+    - Invert orientation with 'rows'/'cols' parameter ( *= means: contains )
+
+    Note: only works from IE11 and up (huh? up?)
+*/
+[band]                  { position: relative; width: 100% }
+
+[band],[block]          { display: flex; justify-content: center; align-content: center }
+
+[band],[band*="cols"]   { flex-flow: row wrap    }  /* a row of columns, default */
+       [band*="rows"]   { flex-flow: column wrap }  /* a column of rows */
+
+[block],[block*="rows"] { flex-flow: column wrap }  /* inverse default of [band] */
+        [block*="cols"] { flex-flow: row wrap    }
+</style>
+<style id="stl-flexbox-simple-default">
+/******************/
+/* FLEXBOX LAYOUT */
+/******************/
+
+/* [MANDATORY] => last in line FBL rules so they can override above setttings */
+
+/* simple flexbox shortcuts */
+[F]         { display: flex }
+[R]         { flex-direction: row }
+[C]         { flex-direction: column }
+[W]         { flex-wrap: wrap }
+
+div,item    { display: flex }
+div         { flex-flow: row wrap    }  /* a row of columns */
+item        { flex-flow: column wrap }  /* a column of rows */
+</style>
+<style id="stl-globals-spacing-alignment-default">
+/*******************************/
+/* global spacing and aligment */
+/*******************************/
+p {
+    margin: 0; /* no outer space */
+    padding:  calc((1.25vmin + 12px) / 2) 0 0 0; /* (320,16)(1920,36), inner space */
+}
+
+/*
+    responsive page padding
+    and responsive band padding (same as responsive page padding, but at band level)
+    p1(320,32) p2(1920, 72) => 0.025x + 24
+    p3(320, 8) p4(1920,320) => 0.195x - 54.4 
+
+    'Band padding' is only active when 'page padding' is off 
+*/
+[padded="1"],[simple-band],
+[padded="0"] [band*="padded"] { padding: calc( 2.5vh + 24px)    calc(19.5vw - 54.4px) }
+[padded="0"] [band*="padxh"]  { padding: calc((2.5vh + 24px)/2) calc(19.5vw - 54.4px) }
+[padded="0"] [band*="padx2"]  { padding: calc((2.5vh + 24px)*2) calc(19.5vw - 54.4px) }
+
+[padded="1"] [band*="padded"] { padding: 0 } /* already padded, no use to pad some more */
+
+
+[push*="R"] { margin-left  : auto } /* push elements Right/Left/Top/Bottom */
+[push*="L"] { margin-right : auto }
+[push*="T"] { margin-top   : auto }
+[push*="B"] { margin-bottom: auto }
+
+[align*="C"] { text-align: center  } /* text alignment */
+[align*="J"] { text-align: justify }
+[align*="L"] { text-align: left    }
+[align*="R"] { text-align: right   }
+[align*="V"] { align-items: center }
+
+[outside],
+[outside="H"] { margin: auto calc(50% - 50vw) }
+[outside="V"] { margin: calc(50% - 50vh) auto }
+</style>
+<style id="stl-widget-newspaper-default">
+/*****************************/
+/* primary column definition */
+/*****************************/
+/*
+    NOTE: '!important' only used in this document to express importance, can be removed safely,
+          unless you are unsure about external settings, injected code, an E.L.E. Just saying…
+*/
+[newspaper] {
+    display   : block      !important;  /* [MANDATORY] flexbox can't handle CSS 'columns' or v.v. */
+    box-sizing: border-box !important;  /* [MANDATORY] calculations MUST include padding! */
+    column-gap: 0          !important;  /* [MANDATORY] handled by column-width math and padding */
+
+    margin : 0 auto; /* [OPTIONAL] center in parent, only in effect when 'max-width' < 100% */
+}
+[newspaper]>* {
+    box-sizing: border-box !important;  /* [MANDATORY] same as parent 'newspaper'  */
+    break-inside: avoid    !important;  /* [MANDATORY] Avoid orphaned child content (don't spread over columns) */
+}
+
+/* WIP, below column width calculation is based on main page padding */
+[newspaper],
+[newspaper="3"] { /* ((320 - 2*8) / 1) - 17 => 287 and ((1920 - 2*320) / 3) - (17 / 3) => 421 (17 = scrollbar) */
+    column-width: calc(8.375vmin + 16.2625rem); /* (320,287)(1920,421) => 1 and 3 columns */
+    column-count: 10; /* Testing: CSS 'column mechanism' will calculate the proper value based on 'column-width' */
+                     /* (TODO: not sure why I did this => 3, 4 or 10 does make a difference, though…) */
+}
+/******************/
+/* column padding */
+/******************/
+[newspaper]>* {
+/* [newspaper] child elements get the same spacing values as default <p> inner space */
+
+    margin: 0;  /* no outer space */
+/*
+    Pro: makes all possible parent space available to child elements
+    Con: may require child elements to be inside a container to
+         create space around child elements (as we are NOT using margins for that!).
+*/
+    /* this padding creates a column gap of 16 (vp 320) to 36 (vp 1920) pixels */
+    padding: calc( 1.25vmin + 12px)
+             calc((1.25vmin + 12px) / 2); /* (320,16)(1920,36), inner space */
+
+    padding-top: 0; /* except: no top space (otherwise jagged column tops) */
+}
+</style>
+
+<style id="stl-widget-checkbox-default">
+/********************************/
+/* WIDGETS: checkbox variations */
+/********************************/
+[check] { height: 0; width: 0; display: none }
+
+/********************/
+/* Simple checkmark */
+/********************/
+[check="0"]                     { font-family: Arial,Helvetica,sans-serif }
+[check="0"]+label:after         { padding-left: .25em }
+
+[check="0"]:checked+label:after { content: '\2714'; color: rgba( 47, 79, 79,.9) }
+[check="0"]+label:after         { content: '\2718'; color: rgba(255,204,1,.9) }
+</style>
+<style id="stl-widget-checkbox-alt1" class="check-alt1">
+/********************/
+/* colored checkbox */
+/********************/
+[check="1"] + label {
+    display: inline-flex; position: relative; width: 2.25rem; height: 1.125rem;
+    border-radius: 2rem; border: 1px solid Silver; text-indent: -9999px;
+}
+
+[check="1"] + label:after {
+    position: absolute; top: 7.5%; left: 4%; width: 40%; height: 85%; content: '';
+    border-radius: 50%; background-color: Silver; transition: all 25ms ease-in-out;
+}
+
+[check="1"]:checked + label       { border-color: DimGrey }
+[check="1"]:checked + label:after { left: 96%; transform: translateX(-100%); background-color: DimGrey }
+[check="1"] + label:active:after  { width: 60% } /* gooey action */
+</style>
+<style id="theme-1-widget-checkbox-alt1" class="check-alt1">
+[check="1"] + label                 { border-color: rgba(255,204,1,.5) }
+[check="1"] + label:after           { background-color: rgba(255,204,1,.5) }
+[check="1"]:checked + label         { border-color: rgba(47, 79, 79,.8) }
+[check="1"]:checked + label:after   { background-color: rgba(47, 79, 79,.8) }
+</style>
+
+
+<style id="stl-style-editor-default">
+/*****************************/
+/* Style viewing and editing */
+/*****************************/
+[style-view*="1"] style { display: block }
+[style-view*="0"] style { display: none  }
+
+style {
+    font-family: monospace; 
+    font-weight: normal; line-height: normal; letter-spacing: .02em;
+    font-size: calc(0.9375vmin + 0.3125rem); /* (320,8)(1280,17) */
+    white-space: pre-wrap;
+
+    width: 100%; max-width: 100%; padding: .5rem;
+
+    background-color: white; color: black
+ }
+ style[contenteditable="false"] { color: DimGrey }
+
+/******************************************/
+/* [OPTIONAL] style editor eye-candy only */
+/******************************************/
+style:before,style:after    { font-family: sans-serif; color: Black }
+
+style:before                { content: '<style id="'attr(id)'" class="'attr(class)'">' }
+style:not([class]):before   { content: '<style id="'attr(id)'">' }
+style:not([id]):before      { content: '<style class="'attr(class)'">' }
+style[media]:before         { content: '<style media="'attr(media)'">' }
+style:after                 { content: '<\/style>' }
+</style>
+<style id="theme-1-style-editor">
+/************************/
+/* Style editor theming */
+/************************/
+style                       { font-family: 'Cutive Mono', monospace }
+
+style:before,style:after    { font-family: 'Open Sans', sans-serif;
+                              color: rgba(47, 79, 79,.8) }
+
+style:not([id]):before      { color: DodgerBlue }
+style[media]:before         { color: RoyalBlue }
+</style>
+
+
+<style id="stl-widget-ribbon-default">
+/*****************************/
+/* fork ribbon generic rules */
+/*****************************/
+.fork {
+    box-sizing: border-box; /* [OPTIONAL], but smart when using borders */
+    position: fixed; /* using 'absolute' will result in overflow and scrollbar */
+
+    /* Flexbox layout [OPTIONAL], personal preference */
+    display: flex; justify-content: center; align-items: center;
+
+    z-index: 999999; /* on top of everything */
+    /* maximum value is usually 2^(32 - 1): 32bits number -1 for negative sign */
+}
+.fork:hover { opacity: 1 }
+
+.fork a {
+    box-sizing: border-box; /* [DITTO] */
+    width: 100%;
+}
+/* [OPTIONAL] How to use a custom property for text */
+.fork a:before { content: attr(data-ribbon) }
+
+.fork.tr45deg { /* [MANDATORY] for this version to work properly */
+    transform-origin: top left; /* pivot around T/L corner of the rectangle */
+    transform: rotate(45deg);   /* at a 45 degree angle. (Do not change as below cos() will fail) */
+}
+</style>
+<style id="stl-widget-ribbon-fixed-ie">
+/***************************/
+/* fork ribbon IE specific */
+/***************************/
+.fork {
+    /* for IE, fixed responsive sizes (or use some 'CSS custom variables' polyfill) */
+    width    : calc(5vmin     + 10.25rem); /* (320,180)(1920,260) */
+    height   : calc(0.5vmin   +  1.4rem) ; /* (320, 24)(1920, 32) */
+    font-size: calc(0.625vmin +  0.5rem) ; /* (320, 10)(1280, 16) */
+    /* 
+        officially: y = calc(m * 100vmin + b),
+        but m values are *100 to remove * 100vmin from equation
+
+        Also: to make results root independent, multiply REM values with 16 and add PX unit
+    */
+}
+.fork a { border-width: 2px 0 }
+
+.fork.tr45deg {
+    /* ribbon scale  = 1.1      */
+    /* sqrt(2)       = 1.41421… */
+    /* (180-45deg)/2 = 67.5     */
+    /* cos(67.5)^2   = 0.38268343^2 = 0.1464466, to move element right */
+    /* to go above top and beyond right margins: multiply with -1 to negate final result */
+
+    /* after 45deg rotation (pivot around top/left corner) 'fork' height becomes diagonal of a square */
+    /* To get the side (height and/or width) of a square from its diagonal (= hypotenuse of a traingle)
+       => hypotenuse / sqrt(2) */
+
+    /* to move 'fork' up: ribbon height (which is now hypotenuse) / 1.4142 */
+    /* where height = 0.5vmin + 1.4rem * scale */
+
+    /* distance to go right = (hypotenuse / 1.4142) + (2 * width * cos^2) * scale * -1 */
+    /* (discussed and verified on 'MathIsFun Forum': http://www.mathisfunforum.com/viewtopic.php?id=25620) */
+    /* This works like a charm, so cool! (Thanks a bunch, Bob) */
+
+    top  : calc(  (0.5vmin + 1.4rem) / 1.41421 * 1.1 * -1 );
+    right: calc((((0.5vmin + 1.4rem) / 1.41421) + (2 * (5vmin + 10.25rem) * 0.1464466)) * 1.1 * -1);
+}
+</style>
+<style id="stl-widget-ribbon-custom-variables">
+/*************************************/
+/* fork ribbon with custom variables */
+/*************************************/
+.fork {
+    --fork-bd : 2px; /* border width */
+
+    /* variable scaling */
+    --fork-scale     : 1.1; /* set these to your desired scales */
+    --fork-scale-text: 1;
+
+    --fork-wm: 0.05   ; --fork-wb: 10.25rem;  /* m and b variables to calculate y, ribbon width */
+    --fork-hm: 0.005  ; --fork-hb: 1.4rem;    /* ditto for height */
+    --fork-fm: 0.00625; --fork-fb: 0.5rem;    /* ditto for font-size */
+
+    /* do not modify */
+    --fork-x: 100vmin;      /* x is always 100vmin */
+    --sqrt-2: 1.41421;      /* sqrt(2) ~ 1.4142135... */
+    --cos2   : 0.1464466;   /* cos(67.5) where 67.5 = (180deg - 45deg) / 2, need cos(67.5)^2 = 0.1464466 */
+                            /* Used to move rotated ribbon up and right */
+}
+.fork a { border-width: var(--fork-bd) 0 }
+
+.fork { /* default ribbon */
+    width    : calc((var(--fork-wm) * var(--fork-x) + var(--fork-wb)) * var(--fork-scale));      /* (320,180)(1920,260) */
+    height   : calc((var(--fork-hm) * var(--fork-x) + var(--fork-hb)) * var(--fork-scale));      /* (320, 24)(1920, 32) */
+    font-size: calc((var(--fork-fm) * var(--fork-x) + var(--fork-fb)) * var(--fork-scale-text)); /* (320, 10)(1280, 16) */
+}
+.fork.tr45deg {
+    /*
+        cos   = cos((180 - 45)/2)
+        w = r = (wm * x + wb)
+        h     = (hm * x + hb) / sqrt2
+        shift = 2 * r * cos(67.5)^2
+
+        move above top border
+        top   = (hm * x + hb) / sqrt2 * scale * -1
+
+        move beyond right border
+        right = (((hm * x + hb) / sqrt2) + (2 * (wm * x + wb) * cos * cos)) * scale * -1
+    */
+    top  : calc(  (var(--fork-hm) * var(--fork-x) + var(--fork-hb)) / var(--sqrt-2) * var(--fork-scale) * -1);
+    right: calc((((var(--fork-hm) * var(--fork-x) + var(--fork-hb)) / var(--sqrt-2)) + (2 * (var(--fork-wm) * var(--fork-x) + var(--fork-wb)) * var(--cos2))) * var(--fork-scale) * -1);
+}
+</style>
+<style id="stl-widget-ribbon-theme-default">
+/***********************/
+/* fork ribbon theming */
+/***********************/
+.fork {
+    background-color: Black; color: White;
+
+    box-shadow: 0px 3px 5px -1px rgba(0,0,0,.4);
+    opacity: 0.9;
+}
+.fork:hover { opacity: 1 }
+
+.fork a {
+    line-height: 1.5; /* change lh to move borders up down */
+
+    font-weight: bold; color: inherit; white-space: nowrap;
+    text-decoration: none; text-align: center;
+    border-style: dotted; border-color: inherit transparent;
+}
+</style>
+<style id="stl-widget-ribbon-examples">
+/*****************************************/
+/* Example ribbons used in this document */
+/*****************************************/
+[ribbon*="1"] { --fork-wb:  2.25rem; background-color: Yellow; color: black; } /* ribbon 1: calc(5vmin +  2.25rem) (320, 52)(1920,132) */
+[ribbon*="2"] { --fork-wb:  6.25rem; background-color: Tomato; color: black; } /* ribbon 2: calc(5vmin +  6.25rem) (320,116)(1920,196) */
+[ribbon*="3"] { --fork-wb: 10.25rem; background-color: rgba(0,0,0,.8); }         /* ribbon 3: calc(5vmin + 10.25rem) (320,180)(1920,260) */
+[ribbon*="4"] { --fork-wb: 14.25rem; background-color: DarkSlateGrey; }        /* ribbon 4: calc(5vmin + 14.25rem) (320,244)(1920,324) */
+[ribbon*="5"] { --fork-wb: 18.25rem; background-color: DarkSlateBlue; }        /* ribbon 5: calc(5vmin + 18.25rem) (320,308)(1920,388) */
+</style>
+<style id="theme-1-widget-ribbon-eyecandy">
+/************************************/
+/* fork ribbon [OPTIONAL] eye-candy */
+/************************************/
+.fork   { color: rgba(255,204,1,1); opacity: 0.8 }
+.fork a { border-color: rgba(255,204,1,1) transparent; font-weight: 600 }
+</style>
+
+
+<style id="theme-1-default">
+/*****************************************/
+/* Main Theme: DarkSlateGrey and EggYoke */
+/*****************************************/
+body                { background-color: White; color: Black }
+
+h1,h2,h3,h4,h5,h6   { color: rgba(47, 79, 79,.56) }
+b                   { color: rgba(47, 79, 79,.8) }
+
+[band*="hero"] {
+    margin-bottom: 8px;
+    box-shadow: 0px 3px 3px -2px rgba(0,0,0,.20),
+                0px 3px 4px  0px rgba(0,0,0,.14),
+                0px 1px 8px  0px rgba(0,0,0,.12);
+}
+[band*="outro"] {
+    margin-top: 8px;
+    box-shadow: 0px 3px 3px -2px rgba(0,0,0,.20),
+                0px 3px 4px  0px rgba(0,0,0,.14),
+                0px 1px 8px  0px rgba(0,0,0,.12);
+}
+
+
+[band*="info"] h3,
+[band*="info"] h5   { color: inherit; opacity: .7 }
+
+[band*="info"] a    { color: rgba(47, 79, 79,1); }
+
+strong              { color: rgba(47, 79, 79,1) }
+
+hr                  { border: 1px solid rgba(47, 79, 79,.1); border-top: none }
+
+/* Try and set 'column-rule' to 200px, just for fun! */
+[newspaper]         { column-rule: 2px dotted rgba(255,204,1,.2) }
+
+:focus              { outline: dotted rgba(47, 79, 79,.8) 2px }
+::selection         { background-color: DarkSlateGrey; color: White }
+
+/******************/
+/* theme 1 colors */
+/******************/
+[clr="0"]           { background-color: rgba(47, 79, 79,.9); color: White }
+[clr="1"]           { background-color: #fefefe; color: rgba(0,0,0,.8) }
+[clr="2"]           { background-color: rgba(30,30,30,.95); color: rgba(255,204,1,1) }
+[clr="3"]           { background-color: rgba(255,204,1,1); color: #1e1e1e }
+[clr="F"]           { background-color: White  ; color: black }
+</style>
+
+<style id="theme-1-typography">
+/**********************/
+/* theme 1 typography */
+/**********************/
+body,input,select       { font-family: 'Open Sans', sans-serif; font-weight: 400 }
+
+/* The HERO font rule */
+[data-typo*="hero"]     { font-family: Cutive, serif;
+                          font-size: calc(5.625vmin - 0.375rem) }/* (320,12)(1280,66) */
+
+/* Exception to the HERO font rule: at viewport size below 320px force fontsize to 12px */
+@media (max-width: 320px),(max-height: 320px) { [data-typo*="hero"] { font-size: 12px } }
+
+[data-typo*="subline"]  { font-size: calc(0.625vmin + 0.625rem); /* (320,12)(1280,18) */
+                          padding: 0; text-align: right }
+</style>
+
+
+
+<style id="ers-demo-lineartocalc">
+/***********************/
+/* Page specific rules */
+/***********************/
+.info,
+[newspaper] { padding: calc(2.5vmin + 8px) 0 } /* (320,16)(1920,56) T/B inner space */
+
+[class^="LEC"], [id^="LEC"] {
+    justify-content: flex-start;
+    flex-grow: 1;                                   /* allow to grow and fill-parent width */
+    flex-basis: 50%;                                /* take at least 50% of the available width (in this case: 50% of [band]) */
+    min-width: calc(280px - ((19.5vw - 54.4px)*2)); /* 320 - (2*4 + 2*16) = 320 - 40 minus main padding */
+    /* but minimally (320px being the assumed width of a smartphone). FBL will wrap at this width */
+    /*
+        NOTE: the smaller the vp is, the larger min-width becomes
+              0 at vp 1920px, 320 - 40 - 16 = 264 at vp 320px
+    */
+
+    padding  : calc(2.5vmin + 8px); /* (320,16)(1920,56), inner space */
+    margin   : 2px;
+}
+.LEC                { margin: 0 }
+
+input,select        { width: 4rem; margin: .125rem; font-size: 1rem; border: 1px solid rgba(255,204,1,.3) }
+#lec-rat            { width: 6rem }
+
+[id^="lec"]         { line-height: inherit }
+.lec-container      { justify-content: center; flex-grow: 1 }
+
+h1,h2,h3,h4,h5,h6   { margin-bottom: 0 }
+
+#LEC-text           { flex-basis: 100% }
+#LEC-form           { flex-basis: 19rem }
+
+#LEC-equation       { font-weight: 700; width: 100%; cursor: auto;
+                      min-height: 10rem; color: rgba(47, 79, 79,.8) }
+.label-header,
+.label              { font-size: 1rem; color: rgba(47, 79, 79,.8) }
+
+.label-header       { width: 100%; font-weight: 600;
+                      padding: .5rem 0 0; margin-bottom: .25rem;
+                      justify-content: flex-end;
+                      color: rgba(47, 79, 79,.4);
+                      border-bottom: 1px solid rgba(47, 79, 79,.1) }
+
+.label              { min-width: 8rem }
+p.label             { padding: calc(12px + 1.25vmin) 0 }
+
+.input              { align-items: center }
+
+
+.tbody              { padding: 1rem 0 }
+.tr                 { padding: .5rem 0 }
+
+#table1 .tr>*            { padding: 0 }
+#table1 .tr>:first-child { min-width: 11rem }
+</style>
+
+
+<style id=stl-test-box-default>
+[class^="test-box"] {
+    margin: .5rem; /* some outer space */
+    padding: calc(1.25vmin + 4px); /* (320,16)(1920,56) / 2 , inner space */
+ }
+
+.test-box1 {
+    height: calc(11.25vmin + 54px); /* (320,90)(1920,270) */
+    width : calc((11.25vmin + 54px) * 1.77778);
+    
+}
+.test-box2 {
+    height: 28.125vmin; /* (320,90)(1920,540) */
+    width : calc(28.125vmin * 1.77778);
+}
+@media (max-height: 320px),(max-width: 320px) {
+[class^="test-box"] {
+        height: 75px;
+        width : calc(75px * 1.77778);
+    }
+}
+</style>
+
+<style id="stl-globals-utility-default">
+/**************************************************/
+/* Utility rules, first so they can be overridden */
+/**************************************************/
+body  { cursor: default } /* Plain arrow for everything, but… */
+input { cursor: auto    } /* …use HTML default cursor on inputs, unless it is an: */
+
+input[list="datalist"],
+input[type="button"  ],
+input[type="checkbox"],
+input[type="radio"   ],
+input[type="color"   ],
+input[type="range"   ],
+input[type="reset"   ],
+input[type="file"    ],
+input[type="submit"  ],
+label:not([for=""]),
+a,button,select,keygen   { cursor: pointer } 
+[contenteditable="true"] { cursor: text    }
+
+/* Darker/more contrast text (put in <body>)
+   => GPU intensive, set default to "0" if document scroll feels too sluggish. */
+[cleartype="1"] { text-shadow: .1px  .1px .2px hsla(0,0%,15%,.35),
+                              -.1px -.1px .2px hsla(0,0%,15%,.25) }
+h1,h2,h3,h4,h5,h6,b,strong,
+[cleartype="0"] { text-shadow: none } /* exceptions, no need to go even 'bolder' */
+
+hr { 
+    display: block; width: 100%;
+    margin-top   : 0;
+    margin-bottom: 0.75em;
+    margin-left  : auto;
+    margin-right : auto;
+}
+
+/* prohibit user from selecting text (put in <body>) */
+[no-select] { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none }
+[do-select] { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; cursor: auto }
+/* enable user to select text (put in specific elements) */
+
+[hide], [data-hide="1"], [plain="1"] {
+    display: none; position: absolute; overflow: hidden; clip: rect(0 0 0 0);
+    z-index: -999999; top: -999999px; margin: -1px; padding: 0; border: 0;
+    height: 1px; width: 1px; min-height: 0; min-width: 0; max-height: 0; max-width: 0
+}
+
+/* show all elements with outlines (put in <body>) */
+[outlines="1"] ::-moz-focus-inner { padding: 0; border: 0 } /* Kills FF extra outline */
+[outlines="1"] *                  { outline: 1px dashed }
+</style>
+
+</head>
+
+
+<body padded="0" style-view="1" outlines="0" no-select>
+<div class="fork tr45deg"><a target="_blank" href="https://github.com/renevanderlende/ers-css-js-lineartocalc" data-ribbon="Code at Github"></a></div>
+
+<section band="padded.padx2.hero" C clr="3" plain="0">
+    <div data-typo="hero">linear equations to "calc()"</div>
+    <p data-typo="subline">responsive sizes using y=mx+b</p>
+</section>
+
+<section band="info.padded" clr="1" plain="0">
+    <div class="info" push="R">
+        <p>stand-alone version of <strong><a rel="noopener" target="_blank" href="https://renevanderlende.github.io/js/ers-lineartocalc-plain.html">linearToCalc v1.1</a></strong></p>
+    </div>
+
+    <div C>
+        <h3>introduction</h3>
+        <p>You may already have come across demo's
+           <a rel="noopener" target="_blank" href="https://codepen.io/MadeByMike/pens/tags/?selected_tag=responsive+typography&cursor=ZD0xJm89MCZwPTE=">MadeByMike</a>
+           or by 
+           <a rel="noopener" target="_blank" href="https://codepen.io/TrentWalton">TrentWalton</a>
+           on Codepen (and a few others:
+           <a rel="noopener" target="_blank" href="https://css-tricks.com/snippets/css/fluid-typography/">Fluid Typography</a>,
+           <a rel="noopener" target="_blank" href="https://css-tricks.com/simplified-fluid-typography/">Simplified Fluid Typography</a> and
+           <a rel="noopener" target="_blank" href="https://blog.typekit.com/2016/08/17/flexible-typography-with-css-locks/">Flexible typography with CSS locks</a>)
+           on how to gain control over responsive typography (make sure to check them out otherwise).
+           I did too and I found their ideas awesome. But, as I am quite bad at math, it took me quite a while to grasp
+           their equations for responsive sizing of webpage fonts.<br>
+           As you may know, most mathematical equations have a name, but unfortunately, none of the posters mentioned
+            the names of the equations they were using, making it even harder for me to understand what it was all about.
+        </p>
+
+        <h3>the hard part</h3>
+        <h5>definitions</h5>
+        <p>To save you the trouble of having to search online like me, those formulas are called
+           <a rel="noopener" target="_blank" title="wikipedia.org" href="https://en.wikipedia.org/wiki/Linear_equation">Linear equations</a>
+           defining the
+           <a rel="noopener" target="_blank" title="marthisfun.com" href="https://www.mathsisfun.com/equation_of_line.html">'equation of a straight line'</a>.
+           They come in several, so called, 'forms':
+        </p>
+        <ul>
+            <li>Standard form: <strong>Ax+By=C</strong>
+            (<a rel="noopener" target="_blank" title="mathplanet.com" href="https://www.mathplanet.com/education/algebra-1/formulating-linear-equations/writing-linear-equations-using-the-point-slope-form-and-the-standard-form">writing linear equations</a>)
+            </li>
+            <li>y as a 
+                <a rel="noopener" target="_blank" title="wikipedia.org" href="https://en.wikipedia.org/wiki/Linear_function">linear function</a>
+                of x: <strong>f(x)=a+bx</strong>
+            </li>
+            <li>
+                <a rel="noopener" target="_blank" title="wikipedia.org" href="https://en.wikipedia.org/wiki/Slope#Definition">Slope</a>
+                Intercept,
+                <a rel="noopener" target="_blank" title="wikipedia.org" href="https://en.wikipedia.org/wiki/Y-intercept">y-intercept</a>
+                or vertical intercept form:
+                <strong>y=mx+b</strong> (depending on country: ax+b, mx+c, mx+d, mx+k, etc.)
+            </li>
+            <li>The
+                <a rel="noopener" target="_blank" title="wikipedia.org"  href="https://en.wikipedia.org/wiki/Linear_equation#Point%E2%80%93slope_form">point slope</a>
+                form: <strong>y-y1=m(x-x1)</strong> or simplified: <strong>y=y1+m(x-x1)</strong> 
+            <li>and quite a few more, but we will be using variations of the ones above from here on…</li> 
+        </ul>
+
+        <p>With above equations you can calculate all points making up a line running through two points.
+           Let this sink in for a moment: <strong>two points, line through them, get all other points on that line…</strong>
+        </p>
+
+        <h3>why and how to use</h3>
+
+        <p>Defining an element's size values (font-size, width, height, padding, margin, etc.)
+
+        <p>Initially I used a graph I had created on
+           <a rel="noopener" target="_blank" href="https://geogebra.org">GeoGebra.org</a>
+           which served me well for a while,
+           <a rel="noopener" target="_blank" title="geogebra.org" href="https://www.geogebra.org/m/gct3bvsp">ERS linear equations</a>.
+           A simple XY-graph with a few sample lines depicting equations I use in my webpages. 
+        </p>
+
+        <div>
+            <div class="test-box1" clr="2">p1(320,90)<br>p2(1920,270)<br>y = 11.25x + 54</div>
+            <div class="test-box2" clr="2">p1(320,90)<br>p2(1920,540)<br>y = 28.125x</div>
+        </div>
+        <p>
+           Although both below equations yield the same result, a CSS rule like<br>
+           <strong>equation 1: &emsp;<i>font-size: calc((mx + b) * ratio)</i></strong><br>
+           e.g. width: calc((11.25vmin + 54px) * 1.77778)<br><br>
+           is much easier to read and maintain (and is less CPU intensive) than<br>
+           <strong>equation 2: &emsp;<i>font-size: calc((y1 + (y2 - y1) / (x2 - x1) * (x - x1)) * ratio)</i></strong><br>
+           e.g. width: calc((90px + (270 - 90) / (1920 - 320) * (100vmin - 320px)) * 1.77778)
+        </p>
+        <p>Be smart about this, don't waste your precious time on fixing pixel level details no-one but you cares about anyway.
+           No matter how pixel perfect your site is, it will only be as good as the content you have to offer.</p> 
+
+        <h3>linearToCalc 1.1</h3>
+        <p>For that reason I created a simple tool (below form)</p>
+    </div>
+</section>
+
+<section band="padded">
+    <div id="LEC-form" C clr="F">
+        <div class="label-header">points</div>
+        <div C>
+            <div class="input">
+                <div class="label">p1(x1,y1)</div>
+                <input id="lec-x1" value="320" type="number" step="any"/>
+                <input id="lec-y1" value="14"  type="number" step="any"/>
+            </div>
+            <div class="input">
+                <div class="label">p2(x2,y2)</div>
+                <input id="lec-x2" value="1280" type="number" step="any"/>
+                <input id="lec-y2" value="20"   type="number" step="any"/>
+            </div>
+        </div>
+
+        <div class="label-header">result</div>
+        <div C>
+            <div class="input">
+                <div class="label">multiply with</div>
+                <input id="lec-rat" value="1" type="number" step="any"/>
+            </div>
+        </div>
+
+        <div class="label-header">units</div>
+        <div C>
+            <div class="input">
+                <div class="label">mx</div>
+                <select id="lec-vp">
+                    <option value="vmin" selected="selected">vmin</option>
+                    <option value="vw"  >vw  </option>
+                    <option value="vh"  >vh  </option>
+                    <option value="vmax">vmax</option>
+                </select>
+            </div>
+            <div class="input">
+                <div class="label">b</div>
+                <select id="lec-unit">
+                    <option value="px"  data-value="1" selected="selected">px</option>
+                    <option value="rem" data-value="16">rem</option>
+                </select>
+            </div>
+            <div class="input">
+                <div class="label">decimals</div>
+                <input id="lec-dec" value="3" type="number" min="0" max="6"/>
+            </div>
+        </div>
+
+        <div class="label-header">CSS</div>
+        <div C>
+            <div class="input">
+                <div class="label">create 'calc()'</div>
+                <input check="1" type="checkbox" id="lec-calc" checked />
+                <label for="lec-calc"></label>
+            </div>
+            <div class="input">
+                <div class="label">comment</div>
+                <input check="1" type="checkbox" id="lec-com" />
+                <label for="lec-com"></label>
+            </div>
+            <div class="input">
+                <div class="label">!important</div>
+                <input check="1" type="checkbox" id="lec-imp"/>
+                <label for="lec-imp"></label>
+            </div>
+        </div>
+        <div class="label-header"><span plain="0">demo&nbsp;</span>toggles</div>
+        <div C>
+            <p class="label" plain="0">The demo toggles showcase a few extra tricks used in this document.
+            </p>
+            <div class="input" plain="0">
+                <div class="label">edit card rules</div>
+                <input check="1" type="checkbox" id="var-editstyle" />
+                <label for="var-editstyle"></label>
+            </div>
+            <div class="input">
+                <div class="label">larger root font</div>
+                <input check="1" type="checkbox" id="var-rootfont" />
+                <label for="var-rootfont"></label>
+            </div>
+            <div class="input" plain="0">
+                <div class="label">show outlines</div>
+                <input check="1" type="checkbox" id="var-outlines" />
+                <label for="var-outlines"></label>
+            </div>
+            <div class="input" plain="0">
+                <div class="label">document [dir]</div>
+                <input check="1" type="checkbox" id="var-docdir" />
+                <label for="var-docdir"></label>
+            </div>
+            <div class="input" plain="0">
+                <div class="label">checkbox alt 1</div>
+                <input check="1" type="checkbox" id="var-checktest" checked />
+                <label for="var-checktest"></label>
+            </div>
+            <div class="input">
+                <div class="label">LEC app only</div>
+                <input check="1" type="checkbox" id="var-plain" />
+                <label for="var-plain"></label>
+            </div>
+        </div>
+
+        <div class="label-header">tl;dr</div>
+        <div C>
+            <p class="label">
+               create <b>calc()</b> version of <b>y=mx+b</b><br>
+               for points <b>p1(x1,y1)</b> and <b>p2(x2,y2)</b><br>
+               from 'point slope form'<br><br>
+            </p>
+            <p class="label" plain="0">
+               full specifications <a href="#LEC-text">below…</a>
+            <p>
+        </div>
+    </div>
+
+    <div id="LEC-equation" C clr="F">
+        <div C>
+            <div  class="label-header">resulting equation</div>
+            <div id="output">
+                <div id="converted-equation" do-select></div>
+            </div>
+        </div>
+
+        <div C plain="0">
+            <div  class="label-header">example cards CSS rules</div>
+            <div class="input">
+            <style id="stl-example-cards" contenteditable="false" cleartype="0" do-select>
+/***************************/
+/* runtime editable styles */ 
+/***************************/
+
+.card-outer, .card-inner {
+    display: block;
+    /* otherwise 'flex' in this document */
+}
+
+.card-outer {
+    /* 
+        parent width minus 
+        parent padding divide by
+        columns wanted at min/max
+
+        min = ( 300.5- 32)/2 = 134.25
+        max = (1258.3-112)/4 = 286.5‬
+    */
+    /* (320,134)(1920,286) */
+    width : calc( 9.5vw + 103.6px);
+    height: calc((9.5vw + 103.6px) * 1.618);
+
+    /* (320,9)(1920,18) at 320 => 134/2.86 ~ 50% of fs at 1920 */
+    font-size: calc(0.5625vw + 7.2px);
+
+    /* (320,2)(1920,6) */
+    padding: calc(0.25vmin + 1.2px); /* GMC */
+}
+
+.card-inner {
+    background-color: rgba(255,204,1,.7);
+    color: Black;
+
+    /* fill parent */
+    width: 100%; height: 100%;
+
+    /* (320,16)(1920,24) */
+    padding: calc(0.5vmin + 14.4px); /* GMC */
+
+}
+.card-inner p { padding: 0; margin: 0 }
+
+/* Some eye-candy */
+.card-inner {
+    /* GMC elevation 1dp */
+    box-shadow: 0px 2px 1px -1px rgba(0,0,0,.20),
+                0px 1px 1px  0px rgba(0,0,0,.14),
+                0px 1px 3px  0px rgba(0,0,0,.12);
+}
+.card-inner:hover {
+    transform: scale(1.01);
+    /* GMC elevation 3dp */
+    box-shadow: 0px 3px 3px -2px rgba(0,0,0,.20),
+                0px 3px 4px  0px rgba(0,0,0,.14),
+                0px 1px 8px  0px rgba(0,0,0,.12);
+}
+.card-inner:active:not(:focus) { transform: scale(1) }
+</style>
+            </div>
+        </div>
+    </div>
+
+    <div class="LEC-example" clr="F" plain="0">
+        <div class="label-header">example cards</div>
+        <div class="lec-container">
+            <div class="card-outer">
+                <div class="card-inner">
+                    <p>Lorem ipsum dolor sit amet, exerci dolorem est ad. Sumo rebum prompta vim ad.
+                       Legendos expetendis id sed. Ex ius quem accusamus, pri et deleniti copiosae.
+                    </p>
+                </div>
+            </div>
+            <div class="card-outer">
+                <div class="card-inner">
+                    <p>Lorem ipsum dolor sit amet, exerci dolorem est ad. Sumo rebum prompta vim ad.
+                       Legendos expetendis id sed. Ex ius quem accusamus, pri et deleniti copiosae.
+                    </p>
+                </div>
+            </div>
+            <div class="card-outer">
+                <div class="card-inner">
+                    <p>Lorem ipsum dolor sit amet, exerci dolorem est ad. Sumo rebum prompta vim ad.
+                       Legendos expetendis id sed. Ex ius quem accusamus, pri et deleniti copiosae.
+                    </p>
+                </div>
+            </div>
+            <div class="card-outer">
+                <div class="card-inner">
+                    <p>Lorem ipsum dolor sit amet, exerci dolorem est ad. Sumo rebum prompta vim ad.
+                       Legendos expetendis id sed. Ex ius quem accusamus, pri et deleniti copiosae.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section band="padded" plain="0">
+    <div class="LEC-example" clr="F">
+        <div class="label-header">examples of&nbsp;<b>calc()</b>&nbsp;used in this document</div>
+        <div class="LEC" C>
+            <p class="label" do-select>
+                <b>&lt;html&gt; fontsize</b><br>
+                default: (<b>320,14</b>)(<b>1280,20</b>)<br>
+                calc(<b>0.625vmin + 0.75rem</b>)<br><br>
+                larger: (<b>320,16</b>)(<b>1280,22</b>)<br>
+                calc(<b>0.625vmin + 0.875rem</b>)
+            </p>
+            <p>Favours browser fontsize settings by using REM. All document text will have this fontsize,
+               unless specifically defined differently (like a few examples here).
+            </p>
+        </div>
+        <div class="LEC" C>
+            <p class="label" do-select>
+                <b>editable card &lt;style&gt; fontsize</b><br>
+                (<b>320,8</b>)(<b>1280,17</b>)<br>
+                calc(<b>0.9375vmin + 0.3125rem</b>)
+            </p>
+            <p>Will show most code without wrapping, but becomes less readable on smartphones.
+            </p>
+        </div>
+        <div class="LEC" C>
+            <p class="label" do-select>
+                <b>[data-typo*="hero"]</b><br>
+                (<b>320,12</b>)(<b>1280,66</b>)<br>
+                calc(<b>5.625vmin - 0.375rem</b>)
+            </p>
+            <p>'hero' and 'outro' large fontsize.<br>
+               MQ: 12px at max vp-size 320px, otherwise it becomes much smaller than [subline] on smartphones.</p>
+        </div>
+        <div class="LEC" C>
+            <p class="label" do-select>
+                <b>[data-typo*="subline"]</b><br>
+                (<b>320,12</b>)(<b>1280,18</b>)<br>
+                calc(<b>0.625vmin + 0.625rem</b>)
+            </p>
+            <p>'hero' and 'outro' subline fontsize</p>
+        </div>
+        <div class="LEC" C>
+            <p class="label" do-select>
+                <b>[band*="padded"]</b><br>
+                T/B padding: (<b>320,32</b>)(<b>1920,72</b>)<br>
+                calc(<b>2.5vh + 24px</b>)<br><br>
+                L/R padding: (<b>320,8</b>)(<b>1920,320</b>)<br>
+                calc(<b>19.5vw - 54.4px</b>)
+            </p>
+            <p>main document padding.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section band="padded" clr="0" plain="0">
+    <div newspaper>
+        <h2 style="color: White">Lorem Ipsum</h2>
+        <p>Lorem ipsum dolor sit amet, exerci dolorem est ad. Sumo rebum prompta vim ad. Legendos expetendis id sed. Ex ius quem accusamus, pri et
+            deleniti copiosae.</p>
+        <p>Cu vel debet nobis, repudiare deseruisse reprehendunt usu ad. Ex elit idque nam. Omnis munere detraxit mei te, eu labore appareat verterem
+            est. Mel ex oporteat consectetuer.</p>
+        <p>Pro ea nonumy integre, mel at solum corpora. Id viris audiam repudiare cum, pri dolore appareat ex, per propriae detracto tacimates ex.
+            Elitr sapientem quo et, usu suas porro tibique cu. Iusto causae eos et, tota principes interesset et eos. Similique intellegam cum ei, unum
+            qualisque mel et, regione verterem delicatissimi qui ut. Aliquam incorrupte ea pro, vel veritus consequat id.</p>
+        <p>Pri te amet electram. Tation commodo minimum cu pri, utamur minimum id pri. No legimus atomorum vim. Vix id putent iuvaret salutandi, mel
+            phaedrum conceptam ut.</p>
+        <p>Nam id utinam referrentur, similique intellegebat ad mel, eu nobis aeterno qui. Ad quodsi cetero sed, deserunt disputando nam an, veri
+            viderer consetetur vel an. Zril vivendo pro no, oratio scripta quo eu, aeque elaboraret duo et. Ea nonumy essent sed, enim cetero pri an. An
+            zril facete ius.</p>
+    </div>
+</section>
+
+<section band="padded" plain="0">
+    <div id="LEC-text" C clr="F">
+        <h3><span title="long; but read anyway">l;bra</span> - how to use linear equations for responsive sizing</h3>
+        <p>Much has been said already about responsive design, the "why-and-how", the "do-and-don't" and, just like me,
+           you will have come accross all kinds of sizing formulas explained by friendly fellow developers.
+        </p>
+
+        <p>Cu vel debet nobis, repudiare deseruisse reprehendunt usu ad. Ex elit idque nam. Omnis munere detraxit mei te, eu labore appareat verterem
+            est. Mel ex oporteat consectetuer.</p>
+        <p>Pro ea nonumy integre, mel at solum corpora. Id viris audiam repudiare cum, pri dolore appareat ex, per propriae detracto tacimates ex.
+            Elitr sapientem quo et, usu suas porro tibique cu. Iusto causae eos et, tota principes interesset et eos. Similique intellegam cum ei, unum
+            qualisque mel et, regione verterem delicatissimi qui ut. Aliquam incorrupte ea pro, vel veritus consequat id.</p>
+
+        <div id="table1" C>
+            <div class="tbody" C do-select>
+                <div class="tr">
+                    <h3><b>calculate result using linear equation</b></h3>
+                </div>
+
+                <div class="tr">
+                    <div>'slope intercept' form</div>
+                    <div><b>y = mx + b</b></div>
+                </div>
+                <div class="tr">
+                    <div>&ensp;=></div>
+                    <div><b>y = (y2 - y1) / (x2 - x1) + (y1 - (y2 - y1) / (x2 - x1) * x1)</b></div>
+                </div>
+                <div class="tr">
+                    <div>'point slope' form</div>
+                    <div><b>y - y1 = m(x - x1)</b>&ensp;=>&ensp;<b>y = y1 + m(x - x1)</b></div>
+                </div>
+                <div class="tr">
+                    <div>&ensp;=></div>
+                    <div><b>y = y1 + (y2 - y1) / (x2 - x1) * (x - x1)</b></div>
+                </div>
+
+                <div class="tr">
+                    <div>As the 'point slope' form is shortest,&nbsp;<b>linearToCalc</b>&nbsp; uses that equation to create the CSS&nbsp;<b>calc()</b></div>
+                </div>
+
+                <div class="tr">
+                    <h3><b>for points</b></h3>
+                </div>
+
+                <div class="tr">
+                    <div><b>p1</b>: (x1,y1)</div>
+                    <div><b>x1</b>&nbsp;- minimum viewport size &nbsp;</div>
+                    <div><b>y1</b>&nbsp;- size at minimum viewport</div>
+                </div>
+                <div class="tr">
+                    <div><b>p2</b>: (x2,y2)</div>
+                    <div><b>x2</b>&nbsp;- maximum viewport size &nbsp;</div>
+                    <div><b>y2</b>&nbsp;- size at maximum viewport</div>
+                </div>
+
+                <div class="tr">
+                    <h3><b>where</b></h3>
+                </div>
+
+                <div class="tr">
+                    <div><b>y</b>: equation result</div>
+                    <div><b>rise</b>&nbsp;- how far up the line</div>
+                </div>
+
+                <div class="tr">
+                    <div><b>m</b>: (y2 - y1) / (x2 - x1)</div>
+                    <div><b>slope</b>&nbsp;- steepness of the line (delta Y / delta X) or (rise / run)</div>
+                </div>
+
+                <div class="tr">
+                    <div><b>x</b>: 100vmin</div>
+                     <div><b>run</b>&nbsp;- how far along the line (fixed 100 vmin, vh, vw or vmax)</div>
+                </div>
+
+                <div class="tr">
+                    <div><b>b</b>: y1 - m * x1</div>
+                    <div><b>Y-intercept</b>&nbsp;- where the line crosses the Y-axis (value at viewport size = 0)</div>
+                </div>
+
+                <div class="tr">
+                    <div><b>x-scale</b>:</div>
+                    <div>viewport size (e.g. 100vmin: 0 to 1920px and grid step 10, 20, 40, 80 or 160)</div>
+                </div>
+                <div class="tr">
+                    <div><b>y-scale</b>:</div>
+                    <div>element size (e.g. font size: 0 to 48 and grid step 1, 2, 4, 8 or 16)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section band="padded.padx2.outro" clr="2" C plain="0">
+    <div data-typo="hero">some nice outro information</div>
+    <p data-typo="subline" do-select>part of 'easy responsiveness series' &trade;</p>
+</section>
+
+<script src="ers-functions.js"></script>
+
+<script>
+/**************/
+/* initialize */
+/**************/
+
+function LinearEquationToCalc(parentElem) {
+var DEBUG = false;           // Switch for console logging
+
+var root   = document.documentElement, // HTML
+    owner  = document.body,  // Not used, WIP
+    parent = ID(parentElem); // Get reference to parent HTML element
+
+// Create a list of available INPUT variables using prefixes of their IDs
+var formInput = ALL('[id^="lec-"],[id^="var-"]'); // lowercase IDs only
+
+// JS Object to save entered INPUT values. Prefilled with some default values (for doc first load or page reload).
+var input = { // Input variables to be passed to getlinearEquation()
+        x1:  320, y1: 14,   // point P1(x1,y1)
+        x2: 1280, y2: 20,   // point P2(x2,y2)
+
+        factor: 1,          // px or rem conversion factor, default px
+        unit  : 'px',       // preferred unit
+        vp    : 'vmin',     // preferred viewport unit
+        ratio : 1,          // 'mx+b' multiplication factor
+
+        precision: 3,       // decimal precision
+
+        calc     : true,    // output as 'calc()'?
+        important: false,   // add !important?
+        comment  : false    // add point values as CSS comment?
+    };
+
+var variables = { // Other, generic demo variables
+    rootfont : false,
+    editstyle: false,
+    plain    : false,
+    outlines : false,
+    docdir   : false,
+    checktest: true
+};
+
+    // traverse retrieved form input elements and assign 'onchange' listener
+    forEachEntryIn(formInput,
+        function (idx,el,scope) {
+            el.onchange = function(e) { LEC_InputsOnChange(e.target) }; });
+
+    function LEC_outputEquation() { // Assign created 'calc()' to parent elements' HTML for display
+        if (parent) { parent.innerHTML = window.getlinearEquation(input).calc; };
+    };
+
+    /*********************/
+    /* document handling */
+    /*********************/
+    function LEC_UpdateAll() { // Execute on change of user input fields, checks all fields
+        forEachEntryIn(formInput, function (idx,el,scope) { LEC_ProcessUserInput(el); });
+
+        LEC_outputEquation(); // Update displayed 'calc()'
+    };
+
+    function LEC_InputsOnChange(element) { // Execute on change of user input fields, checks single field
+        LEC_ProcessUserInput(element);     // Verify user input
+        LEC_outputEquation();              // Update displayed 'calc()'
+    };
+
+    function LEC_ProcessUserInput(element) {
+    // Checks if a user input field has changed and stores new value in JS Objects
+    // Execute field specific JS code
+
+        switch (element.id) { // HTML element #id
+            // Points
+            case 'lec-x1'  : if (element.value != input.x1)         { input.x1 = element.value; }; break;
+            case 'lec-y1'  : if (element.value != input.y1)         { input.y1 = element.value; }; break;
+            case 'lec-x2'  : if (element.value != input.x2)         { input.x2 = element.value; }; break;
+            case 'lec-y2'  : if (element.value != input.y2)         { input.y2 = element.value; }; break;
+
+            // Viewport unit
+            case 'lec-vp'  : if (element.value != input.vp)         { input.vp = element.value; }; break;
+
+            // decimal precision and multiplication factor
+            case 'lec-dec' : if (element.value != input.precision)  { input.precision = element.value; }; break;
+            case 'lec-rat' : if (element.value != input.ratio)      { input.ratio     = element.value; }; break;
+
+            // Output makeup
+            case 'lec-calc': if (element.checked != input.calc     ){ input.calc      = element.checked; }; break;
+            case 'lec-imp' : if (element.checked != input.important){ input.important = element.checked; }; break;
+            case 'lec-com' : if (element.checked != input.comment)  { input.comment   = element.checked; }; break;
+
+            case 'lec-unit': if (element.value != input.unit) {
+                                 input.unit   = element.value;
+                                 input.factor = (element.value == 'rem') ? 16 : 1; // else 'px'
+                             }; 
+                             break;
+
+            // Demo toggles
+            case 'var-rootfont':  if (element.checked != variables.rootfont) { // (320,14)(1280,20) and (320,16)(1280,22)
+                                      root.style.fontSize = (variables.rootfont) ? 'calc(0.625vmin + 0.75rem)' :
+                                                                                   'calc(0.625vmin + 0.875rem)' ;
+                                      variables.rootfont = element.checked;
+                                  };
+                                  break;
+
+            case 'var-editstyle': if (element.checked != variables.editstyle) {
+                                      variables.editstyle = element.checked;
+                                      switchEditbyId('stl-example-cards');
+                                      toggleAttributeById('stl-example-cards','cleartype','1','0');
+                                  };
+                                  break;
+
+            case 'var-plain':     if (element.checked != variables.plain) {
+                                      variables.plain = element.checked;
+                                      toggleAttributeAll('[plain]','plain','1','0');
+                                  };
+                                  break;
+
+            case 'var-outlines' : if (element.checked != variables.outlines) {
+                                      variables.outlines = element.checked;
+                                      toggleBodyAttribute('outlines');
+                                  };
+                                  break;
+
+            case 'var-docdir'   : if (element.checked != variables.docdir) {
+                                      variables.docdir = element.checked;
+                                      toggleDocDir('L');
+                                  };
+                                  break;
+
+            case 'var-checktest': if (element.checked != variables.checktest) {
+                                      variables.checktest = element.checked;
+                                      toggleAttributeAll('[type="checkbox"]','check','1','0');
+                                  };
+                                  break;
+        };
+    };
+
+    return {
+      /* PROPERTIES */
+      inputs: formInput,
+
+      /* METHODS */
+      initialize: LEC_outputEquation,
+      updateAll : LEC_UpdateAll,
+    };
+};
+
+/********/
+/* MAIN */
+/********/
+// document.addEventListener('DOMContentLoaded',DocInit); // not sure which works best…
+window.addEventListener('load', DocInit);
+
+function DocInit() {
+// Get 'calc()' and assign result to 'converted-equation'.innerHTML
+var EQU = new LinearEquationToCalc('converted-equation');
+
+EQU.updateAll();
+};
+</script>
+</body>
+</html>
